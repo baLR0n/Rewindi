@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rewindi.ConsoleTest", "Rewindi.ConsoleTest\Rewindi.ConsoleTest.csproj", "{792BF007-E31F-4234-A2F9-0909F6FE5A8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rewindi.Model", "..\Rewindi.Model\Rewindi.Model\Rewindi.Model.csproj", "{52224502-2A5D-48EF-9004-4A77EA097B25}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{792BF007-E31F-4234-A2F9-0909F6FE5A8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{792BF007-E31F-4234-A2F9-0909F6FE5A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{792BF007-E31F-4234-A2F9-0909F6FE5A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{792BF007-E31F-4234-A2F9-0909F6FE5A8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52224502-2A5D-48EF-9004-4A77EA097B25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52224502-2A5D-48EF-9004-4A77EA097B25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52224502-2A5D-48EF-9004-4A77EA097B25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52224502-2A5D-48EF-9004-4A77EA097B25}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

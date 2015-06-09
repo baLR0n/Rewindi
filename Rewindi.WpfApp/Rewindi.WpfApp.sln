@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rewindi.WpfApp", "Rewindi.WpfApp\Rewindi.WpfApp.csproj", "{AA0E5389-01F7-4262-BF07-6182BAA48A13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rewindi.ViewModel", "..\Rewindi.ViewModel\Rewindi.ViewModel\Rewindi.ViewModel.csproj", "{C6813433-0079-4EDD-9DD6-461B62F65723}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA0E5389-01F7-4262-BF07-6182BAA48A13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA0E5389-01F7-4262-BF07-6182BAA48A13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA0E5389-01F7-4262-BF07-6182BAA48A13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA0E5389-01F7-4262-BF07-6182BAA48A13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6813433-0079-4EDD-9DD6-461B62F65723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6813433-0079-4EDD-9DD6-461B62F65723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6813433-0079-4EDD-9DD6-461B62F65723}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6813433-0079-4EDD-9DD6-461B62F65723}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
