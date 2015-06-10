@@ -34,6 +34,10 @@
       <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PropertyChanged, Version=1.50.1.0, Culture=neutral, PublicKeyToken=ee3ee20bcf148ddd, processorArchitecture=MSIL">
+      <HintPath>..\..\Rewindi.WpfApp\packages\PropertyChanged.Fody.1.50.1\Lib\portable-net4+sl4+wp8+win8+wpa81+MonoAndroid16+MonoTouch40\PropertyChanged.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -45,17 +49,34 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameInfo\GameInfo.cs" />
+    <Compile Include="GameInfo\LogEntry.cs" />
     <Compile Include="GameInfo\MapInfo.cs" />
     <Compile Include="GameInfo\Move.cs" />
     <Compile Include="GameInfo\StoneType.cs" />
     <Compile Include="GameInfo\TeamInfo.cs" />
+    <Compile Include="GameLogic\GameLogic.cs" />
+    <Compile Include="GameLogic\Map\Field.cs" />
+    <Compile Include="GameLogic\Map\FieldState.cs" />
+    <Compile Include="GameLogic\Map\Position.cs" />
+    <Compile Include="GameLogic\Map\Transition.cs" />
     <Compile Include="Parsing\GameInfoParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\Rewindi.WpfApp\packages\Fody.1.28.3\build\Fody.targets" Condition="Exists('..\..\Rewindi.WpfApp\packages\Fody.1.28.3\build\Fody.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\Rewindi.WpfApp\packages\Fody.1.28.3\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\Rewindi.WpfApp\packages\Fody.1.28.3\build\Fody.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
