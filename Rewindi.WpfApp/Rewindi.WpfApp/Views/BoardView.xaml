@@ -145,7 +145,7 @@
                                         </Path.Data>
                                     </Path>
                                     <Label x:Name="specialField"
-                                           FontSize="12"
+                                           FontSize="9"
                                            VerticalContentAlignment="Center"
                                            HorizontalContentAlignment="Center"
                                            VerticalAlignment="Center"
@@ -208,6 +208,9 @@
                                         <Setter TargetName="specialField" Property="Visibility" Value="Visible"></Setter>
                                         <Setter TargetName="specialField" Property="Content" Value="X"></Setter>
                                         <Setter TargetName="border" Property="Background" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Affected}" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="LightCoral"></Setter>
                                     </DataTrigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>

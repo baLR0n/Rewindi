@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Timers;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Ink;
 using Caliburn.Micro;
 using PropertyChanged;
 using Rewindi.Model.GameInfo;
@@ -23,15 +25,13 @@ namespace Rewindi.ViewModel.ViewModels
 
         private Timer playtimer;
 
-        public GameLogic GameLogic { get; set; }
-
         /// <summary>
-        /// Gets or sets the game information.
+        /// Gets or sets the game logic.
         /// </summary>
         /// <value>
-        /// The game information.
+        /// The game logic.
         /// </value>
-        public GameInfo GameInfo { get; set; }
+        public GameLogic GameLogic { get; set; }
 
         /// <summary>
         /// A dictionary which contains the player names and their number.
@@ -121,14 +121,8 @@ namespace Rewindi.ViewModel.ViewModels
 
                         if (this.GameLogic.GameStates.Count > this.SelectedLogIndex)
                         {
-                            this.CurrentMapToDisplay = new ObservableCollection<FieldState>(this.GameLogic.GameStates[this.SelectedLogIndex].ToList());
+                            this.InitializeBoardValues();
 
-                            this.LogEntries = new ObservableCollection<LogEntry>();
-                            this.LogEntries.Add(new LogEntry(new Move("Initial setup"), this.CurrentMapToDisplay.ToArray(), -1));
-
-                            this.Players = this.GameLogic.PlayerCount;
-                            this.BombPower = this.GameLogic.BombStrength;
-                            
                             //ToDo: GameInfo-Objekt füllen. StartDate, enddate, etc.
                         }
 
@@ -140,6 +134,20 @@ namespace Rewindi.ViewModel.ViewModels
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Initializes the board values.
+        /// </summary>
+        private void InitializeBoardValues()
+        {
+            this.CurrentMapToDisplay = new ObservableCollection<FieldState>(this.GameLogic.GameStates[this.SelectedLogIndex].ToList());
+
+            this.LogEntries = new ObservableCollection<LogEntry>();
+            this.LogEntries.Add(new LogEntry(new Move("Initial setup"), this.CurrentMapToDisplay.ToArray(), -1));
+
+            this.Players = this.GameLogic.PlayerCount;
+            this.BombPower = this.GameLogic.BombStrength;
         }
 
         /// <summary>
@@ -174,11 +182,31 @@ namespace Rewindi.ViewModel.ViewModels
         /// <param name="args">The <see cref="EventArgs"/> instance containing the event data.</param>
         public void OnSelectionChanged(EventArgs args)
         {
-            for (int i = 0; i < this.CurrentMapToDisplay.Count; i++)
+            SelectionChangedEventArgs changedArgs = (SelectionChangedEventArgs) args;
+            
+            // If you are processing forward, show changed fields.
+            if (changedArgs.RemovedItems.Count > 0 && changedArgs.AddedItems.Count > 0 &&
+                this.LogEntries.IndexOf((LogEntry) changedArgs.AddedItems[0]) < this.LogEntries.IndexOf((LogEntry) changedArgs.RemovedItems[0]))
             {
-                if (this.CurrentMapToDisplay[i].Type != this.LogEntries[this.SelectedLogIndex].MapState[i].Type)
+                for (int i = 0; i < this.CurrentMapToDisplay.Count; i++)
                 {
-                    this.CurrentMapToDisplay[i].Type = this.LogEntries[this.SelectedLogIndex].MapState[i].Type;
+                    this.CurrentMapToDisplay[i].Affected = false;
+                    if (this.CurrentMapToDisplay[i].Type != this.LogEntries[this.SelectedLogIndex].MapState[i].Type)
+                    {
+                        this.CurrentMapToDisplay[i].Type = this.LogEntries[this.SelectedLogIndex].MapState[i].Type;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < this.CurrentMapToDisplay.Count; i++)
+                {
+                    this.CurrentMapToDisplay[i].Affected = false;
+                    if (this.CurrentMapToDisplay[i].Type != this.LogEntries[this.SelectedLogIndex].MapState[i].Type)
+                    {
+                        this.CurrentMapToDisplay[i].Type = this.LogEntries[this.SelectedLogIndex].MapState[i].Type;
+                        this.CurrentMapToDisplay[i].Affected = true;
+                    }
                 }
             }
         }
@@ -353,6 +381,14 @@ namespace Rewindi.ViewModel.ViewModels
         /// The players.
         /// </value>
         public int Players { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the scores. For later versions.
+        /// </summary>
+        /// <value>
+        /// The scores.
+        /// </value>
+        public ObservableCollection<int> Scores { get; set; }
 
         /// <summary>
         /// Gets the bomb power.

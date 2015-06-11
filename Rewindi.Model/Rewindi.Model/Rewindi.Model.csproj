@@ -48,12 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameInfo\GameInfo.cs" />
     <Compile Include="GameInfo\LogEntry.cs" />
-    <Compile Include="GameInfo\MapInfo.cs" />
     <Compile Include="GameInfo\Move.cs" />
-    <Compile Include="GameInfo\StoneType.cs" />
-    <Compile Include="GameInfo\TeamInfo.cs" />
     <Compile Include="GameLogic\GameLogic.cs" />
     <Compile Include="GameLogic\Map\Field.cs" />
     <Compile Include="GameLogic\Map\FieldState.cs" />

@@ -21,6 +21,8 @@ namespace Rewindi.Model.GameLogic.Map
 		 */
 	    public int Type { get; set; }
 
+        public bool Affected { get; set; }
+
 		public void SetValues(int type)
 		{
             this.Type = type;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Rewindi.Model.GameLogic.Map;
 
@@ -49,16 +48,6 @@ namespace Rewindi.Model.GameLogic
 		public int MapHeight;
 
 		public Field[] Map;
-        /// <summary>
-        /// Saves the Mapdata in a binary format:
-        /// Bit 0-7: Is there a valid field in the given direction?
-        /// Bit 8-10: Is this field occupied by an enemy?
-        /// Bit 11-23: Not used!
-        /// Bit 24-31: Is this field an transformation field?
-        /// All sections follow the game specification -> Starts with 0 at the top, and goes on clockwise
-        /// 0 top, 1 top right, 2 right, 3 down right, ...
-        /// </summary> 
-        public UInt64[] Map_binary;
 
 		public List<Transition> Transitions = new List<Transition>();
 
@@ -76,12 +65,7 @@ namespace Rewindi.Model.GameLogic
 		//holds all free fields, that are possible legit moves
 		private List<Field> possibleLegitMoves = new List<Field>();
 
-		//the player that is currently in first position (updated in evaluateMap)
-		private int currentFirstPlayer;
-
-	//MAP EVALUATION
-		private float[] playerscores;
-		private int[] stoneCount;
+		public int[] stoneCount;
 
 	//SET STONE
 		private List<List<Field>> stonesToTurn = new List<List<Field>>();
@@ -319,28 +303,6 @@ namespace Rewindi.Model.GameLogic
             Map[x * MapHeight + y] = null;
         }
 
-        public void UpdateLegitMoves_binary(int currPlayer)
-        {
-            this.UpdateOwnStones_binary(currPlayer);
-            legitMoves.Clear();
-            legitOverwriteMoves.Clear();
-
-            foreach (UInt64 field in OwnStones_binary)
-            {
-                //todo: flatten loop faster/possible?
-                for (int dir = 0; dir < 8; dir++)
-                {
-                    //is neighbour field null (=invalid field) or own field?
-                    if ((field == 0) || //todo: falsch -> nur auf entsprechenden Teil schauen
-                        ((field & (15UL << (dir * 4 + 8) | 1UL << dir)) //get mask for field in the desired direction
-                        == (((ulong)(currPlayer + 7) << (dir * 4 + 8)) | (1UL << dir)))) //calculate own field, //playerNr - 1 + 8(for occupied stone)
-                        continue;
-                    Console.WriteLine(field);
-                }
-
-            }
-        }
-
 		//caluculates which moves are legal in the current map state 
 		//and saves them in the legitMoves and legitOverwriteMoves lists
 		public void UpdateLegitMoves(int currPlayer)
@@ -415,32 +377,18 @@ namespace Rewindi.Model.GameLogic
 		public void UpdateOwnStones (int playerNr)
 		{
 			OwnStones.Clear();
+            this.stoneCount[playerNr] = 0;
 
 			foreach (Field f in Map) 
 			{
-				if (f != null && f.state.Type == playerNr)
-					OwnStones.Add (f);
+			    if (f != null && f.state.Type == playerNr)
+			    {
+			        OwnStones.Add(f);
+                    this.stoneCount[playerNr]++;
+			    }
 			}
+            
 		}
-
-        /// <summary>
-        /// Updates the list OwnStones, where all stones from the player committed are storred
-        /// </summary>
-        /// <param name="playerNr">number of the player to update</param>
-        public void UpdateOwnStones_binary(int playerNr)
-        {
-            OwnStones.Clear();
-
-            for (int x = 0; x < this.MapWidth; x++)
-            {
-                for (int y = 0; y < this.MapHeight; y++)
-                {
-                    if ((Map_binary[x * MapHeight + y] & (((ulong)(15)) << 48)) == (((ulong)(playerNr + 7)) << 48)) //playerNr - 1 + 8(for occupied stone)
-                       OwnStones_binary.Add(Map_binary[x * MapHeight + y]);
-                }
-            }
-        }
-
 
         /// <summary>
         /// Sets the given reference and the direction to the neighbour in the given direction.
@@ -475,8 +423,6 @@ namespace Rewindi.Model.GameLogic
 		public void InitializeArrays()
 		{
 			stoneCount = new int[PlayerCount + 1];
-			playerscores = new float[PlayerCount + 1];
-			playerscores [0] = float.MinValue;
 
 			CurrentMapState = new FieldState[this.MapHeight * this.MapWidth];
 		    for (int i = 0; i < CurrentMapState.Length; i++)
@@ -584,219 +530,6 @@ namespace Rewindi.Model.GameLogic
             catch (Exception e)
             {
                 Console.WriteLine("Fehler beim Einlesen der Karte: " + e.Message);
-            }
-        }
-
-        //Todo: Methode zum Einlesen auf Bitebene
-        //wenn das hier funktioniert, sollte es in readMapData()
-        //integriert werden
-        public void readMapData_binary()
-        {
-            Map_binary = new UInt64[MapWidth * MapHeight];
-            //go thru all fields of the map
-            for (int x = 0; x < this.MapWidth; x++)
-            {
-                for (int y = 0; y < this.MapHeight; y++)
-                {
-                    if (Map[x * MapHeight + y] == null)
-                        continue;
-
-                    //Sets the type of the stone itself
-                    switch (Map[x * MapHeight + y].state.Type)
-                    {
-                        //expansion stone (0100)
-                        case (9):
-                            {
-                                Map_binary[x * MapHeight + y] |= 5UL << 48;
-                                break;
-                            }
-                        //player 1 - 8
-                        //player 8 (1111)
-                        case (8):
-                            {
-                                Map_binary[x * MapHeight + y] |= 15UL << 48;
-                                break;
-                            }
-                        //player 7 (1110)
-                        case (7):
-                            {
-                                Map_binary[x * MapHeight + y] |= 14UL << 48;
-                                break;
-                            }
-                        //player 6 (1101)
-                        case (6):
-                            {
-                                Map_binary[x * MapHeight + y] |= 13UL << 48;
-                                break;
-                            }
-                        //player 5 (1100)
-                        case (5):
-                            {
-                                Map_binary[x * MapHeight + y] |= 12UL << 48;
-                                break;
-                            }
-                        //player 4 (1011)
-                        case (4):
-                            {
-                                Map_binary[x * MapHeight + y] |= 11UL << 48;
-                                break;
-                            }
-                        //player 3 (1010)
-                        case (3):
-                            {
-                                Map_binary[x * MapHeight + y] |= 10UL << 48;
-                                break;
-                            }
-                        //player 2 (1001)
-                        case (2):
-                            {
-                                Map_binary[x * MapHeight + y] |= 9UL << 48;
-                                break;
-                            }
-                        //player 1 (1000)
-                        case (1):
-                            {
-                                Map_binary[x * MapHeight + y] |= 8UL << 48;
-                                break;
-                            }
-                        case (0):
-                            {
-                                //case(0) ignored, because all bits have to be set to 0, which they already are
-                                break;
-                            }
-                        //choice stone (0001)
-                        case (-1):
-                            {
-                                Map_binary[x * MapHeight + y] |= 1UL << 48;
-                                break;
-                            }
-                        //inversion stone (0010)
-                        case (-2):
-                            {
-                                Map_binary[x * MapHeight + y] |= 2UL << 48;
-                                break;
-                            }
-                        //bonus stone (0011)
-                        case (-3):
-                            {
-                                Map_binary[x * MapHeight + y] |= 3UL << 48;
-                                break;
-                            }
-                        default:
-                            {
-                                throw new InvalidDataException("unknown field type.#readMapData_binary");
-                            }
-
-                    }
-
-                    //check all directions
-                    for (int i = 0; i < 8; i++)
-                    {
-                        if (Map[x * MapHeight + y].Neighbours[i] == null)
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            //Sets if neighbour field exists
-                            Map_binary[x * MapHeight + y] |= 1UL << i;
-                        }
-
-                        //Sets the type of the neighbour
-                        switch (Map[x * MapHeight + y].Neighbours[i].state.Type)
-                        {
-                            //expansion stone (0100)
-                            case (9):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 5UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 1 - 8
-                            //player 8 (1111)
-                            case (8):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 15UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 7 (1110)
-                            case (7):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 14UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 6 (1101)
-                            case (6):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 13UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 5 (1100)
-                            case (5):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 12UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 4 (1011)
-                            case (4):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 11UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 3 (1010)
-                            case (3):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 10UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 2 (1001)
-                            case (2):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 9UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //player 1 (1000)
-                            case (1):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 8UL << (i * 4 + 8);
-                                    break;
-                                }
-                            case (0):
-                                {
-                                    //case(0) ignored, because all bits have to be set to 0, which they already are
-                                    break;
-                                }
-                            //choice stone (0001)
-                            case (-1):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 1UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //inversion stone (0010)
-                            case (-2):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 2UL << (i * 4 + 8);
-                                    break;
-                                }
-                            //bonus stone (0011)
-                            case (-3):
-                                {
-                                    Map_binary[x * MapHeight + y] |= 3UL << (i * 4 + 8);
-                                    break;
-                                }
-                            default:
-                                {
-                                    throw new InvalidDataException("unknown neighbour field type.#readMapData_binary");
-                                }
-
-                        }
-                    }
-                }
-            }
-            //Sets if neighbour is a transition
-            foreach (Transition transition in Transitions)
-            {
-               Map_binary[transition.source.x * MapHeight + transition.source.y] |= 1UL << (transition.source.dir + 40);
-               Map_binary[transition.target.x * MapHeight + transition.target.y] |= 1UL << (transition.target.dir + 40);
             }
         }
 
