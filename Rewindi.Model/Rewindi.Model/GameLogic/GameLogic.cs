@@ -260,13 +260,13 @@ namespace Rewindi.Model.GameLogic
             {
                 for (int y = 0; y < MapHeight; y++)
                 {
-                    if (CurrentMapState[x*MapHeight + y] != null)
+                    if (Map[x*MapHeight + y] == null)
+                    {
+                        newMapState[x + y * MapWidth].Type = -5;
+                    }
+                    else if (CurrentMapState[x*MapHeight + y] != null)
                     {
                         newMapState[x + y * MapWidth].SetValues(CurrentMapState[x * MapHeight + y].Type);
-                    }
-                    else
-                    {
-                        newMapState[x + y * MapWidth].SetType('-');
                     }
                 }
             }

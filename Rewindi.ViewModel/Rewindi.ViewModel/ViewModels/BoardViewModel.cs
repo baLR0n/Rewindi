@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
+using System.Timers;
 using System.Windows;
 using Caliburn.Micro;
 using PropertyChanged;
@@ -18,6 +20,8 @@ namespace Rewindi.ViewModel.ViewModels
     {
         private readonly IEventAggregator events;
         private readonly IWindowManager windowManager;
+
+        private Timer playtimer;
 
         public GameLogic GameLogic { get; set; }
 
@@ -64,12 +68,16 @@ namespace Rewindi.ViewModel.ViewModels
         /// <value>
         /// The current map to display.
         /// </value>
-        public FieldState[] CurrentMapToDisplay { get; private set; }
+        public ObservableCollection<FieldState> CurrentMapToDisplay { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BoardViewModel"/> class.
         /// </summary>
-        public BoardViewModel() {}
+        public BoardViewModel()
+        {
+            playtimer = new Timer(1000.0);
+            playtimer.Elapsed += this.PlaytimerOnElapsed;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BoardViewModel"/> class.
@@ -81,6 +89,8 @@ namespace Rewindi.ViewModel.ViewModels
         {
             this.events = events;
             this.windowManager = windowManager;
+            playtimer = new Timer(1000.0);
+            playtimer.Elapsed += this.PlaytimerOnElapsed;
 
             this.events.Subscribe(this);
         }
@@ -111,10 +121,10 @@ namespace Rewindi.ViewModel.ViewModels
 
                         if (this.GameLogic.GameStates.Count > this.SelectedLogIndex)
                         {
-                            this.CurrentMapToDisplay = this.GameLogic.GameStates[this.SelectedLogIndex];
+                            this.CurrentMapToDisplay = new ObservableCollection<FieldState>(this.GameLogic.GameStates[this.SelectedLogIndex].ToList());
 
                             this.LogEntries = new ObservableCollection<LogEntry>();
-                            this.LogEntries.Add(new LogEntry(new Move("Initial setup"), this.CurrentMapToDisplay, -1));
+                            this.LogEntries.Add(new LogEntry(new Move("Initial setup"), this.CurrentMapToDisplay.ToArray(), -1));
 
                             this.Players = this.GameLogic.PlayerCount;
                             this.BombPower = this.GameLogic.BombStrength;
@@ -164,7 +174,13 @@ namespace Rewindi.ViewModel.ViewModels
         /// <param name="args">The <see cref="EventArgs"/> instance containing the event data.</param>
         public void OnSelectionChanged(EventArgs args)
         {
-            this.CurrentMapToDisplay = this.LogEntries[this.SelectedLogIndex].MapState;
+            for (int i = 0; i < this.CurrentMapToDisplay.Count; i++)
+            {
+                if (this.CurrentMapToDisplay[i].Type != this.LogEntries[this.SelectedLogIndex].MapState[i].Type)
+                {
+                    this.CurrentMapToDisplay[i].Type = this.LogEntries[this.SelectedLogIndex].MapState[i].Type;
+                }
+            }
         }
 
         /// <summary>
@@ -174,6 +190,67 @@ namespace Rewindi.ViewModel.ViewModels
         public void PreviewDragEnter(DragEventArgs e)
         {
             e.Handled = true;
+        }
+
+        /// <summary>
+        /// Display the next move.
+        /// </summary>
+        public void Next()
+        {
+            this.SelectedLogIndex++;    
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can next.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can next; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanNext
+        {
+            get
+            {
+                return this.LogEntries != null && this.SelectedLogIndex < this.LogEntries.Count - 1;
+            }
+        }
+
+        /// <summary>
+        /// Display the previous move.
+        /// </summary>
+        public void Previous()
+        {
+            this.SelectedLogIndex--;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can previous.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance can previous; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanPrevious
+        {
+            get
+            {
+                return this.LogEntries != null && this.SelectedLogIndex > 0;
+            }
+        }
+
+        /// <summary>
+        /// Starts or stops the autoplay.
+        /// </summary>
+        public void PlayStop()
+        {
+            this.IsPlaying = !this.IsPlaying;
+
+            if (this.IsPlaying)
+            {
+                this.playtimer.Start();
+            }
+            else
+            {
+                this.playtimer.Stop();
+            }
         }
 
         /// <summary>
@@ -196,13 +273,35 @@ namespace Rewindi.ViewModel.ViewModels
                 this.GameLogic.SetStone(this.LoggedMoves[i].PosX, this.LoggedMoves[i].PosY, new byte(),
                     this.playerNumbers[this.LoggedMoves[i].TeamName]);
 
-                this.LogEntries.Add(new LogEntry(this.LoggedMoves[i], 
+                this.LogEntries.Add(new LogEntry(this.LoggedMoves[i],
                     this.GameLogic.GameStates[gameStateIndex],
                     playerNumbers[this.LoggedMoves[i].TeamName]));
 
                 gameStateIndex++;
             }
         }
+
+        /// <summary>
+        /// Occurs when the play timer´s timespan ellapsed. Displays the next move.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="elapsedEventArgs">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void PlaytimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            if (this.IsPlaying)
+            {
+                this.Next();
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is playing.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is playing; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsPlaying { get; private set; }
 
         /// <summary>
         /// Gets or sets the map drop label text.
@@ -219,6 +318,17 @@ namespace Rewindi.ViewModel.ViewModels
         /// The log drop label text.
         /// </value>
         public string LogDropLabelText { get; set; }
+
+        /// <summary>
+        /// Gets or sets the play or stop button text.
+        /// </summary>
+        /// <value>
+        /// The play or stop button text.
+        /// </value>
+        public string PlayOrStop 
+        {
+            get { return this.IsPlaying ? "Stop" : "Play"; }
+        }
 
         /// <summary>
         /// Gets the width of the game.

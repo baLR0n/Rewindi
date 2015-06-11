@@ -1,7 +1,9 @@
 ﻿using System;
+using PropertyChanged;
 
 namespace Rewindi.Model.GameLogic.Map
 {
+    [ImplementPropertyChanged]
 	public class FieldState
 	{
 		/*  null = nothing
